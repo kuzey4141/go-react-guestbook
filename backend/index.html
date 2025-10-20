@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ziyaretçi Defteri</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        .mesaj { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+        .mesaj strong { color: #0056b3; }
+        form { margin-bottom: 2em; }
+        input, textarea { width: 300px; margin-bottom: 10px; padding: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Ziyaretçi Defteri</h1>
+
+    <form action="/" method="POST">
+        <div>
+            <label for="isim">İsim:</label><br>
+            <input type="text" id="isim" name="isim" required>
+        </div>
+        <div>
+            <label for="mesaj">Mesaj:</label><br>
+            <textarea id="mesaj" name="mesaj" rows="4" required></textarea>
+        </div>
+        <div>
+            <button type="submit">Gönder</button>
+        </div>
+    </form>
+
+    <hr>
+    <h2>Mesajlar</h2>
+
+    {{range .}}
+        <div class="mesaj">
+            <p><strong>{{.Isim}} dedi ki:</strong></p>
+            <p>{{.Mesaj}}</p>
+        </div>
+    {{else}}
+        <p>Henüz hiç mesaj bırakılmamış. İlk mesajı siz bırakın!</p>
+    {{end}}
+
+</body>
+</html>
