@@ -9,7 +9,6 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-// openDB (DEĞİŞİKLİK YOK)
 func openDB(connStr string) (*sql.DB, error) {
 	db, err := sql.Open("pgx", connStr)
 	if err != nil {
@@ -21,64 +20,46 @@ func openDB(connStr string) (*sql.DB, error) {
 	return db, nil
 }
 
-// YENİ: CORS Middleware'i
-// Bu fonksiyon, React (localhost:3000) sunucumuzdan gelen isteklere
-// tarayıcının izin vermesini sağlayan başlıkları (headers) ekler.
+// enableCORS adds the headers required for the React app on localhost:3000.
 func enableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Sadece 'localhost:3000'den gelen isteklere izin ver
 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-		// İzin verilen metodlar
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		// İzin verilen başlıklar (özellikle POST'taki 'Content-Type' için)
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-		// Tarayıcılar, POST yapmadan önce bir 'OPTIONS' isteği (preflight) gönderir.
-		// Bu isteğe 'Tamam, izin veriyorum' dememiz gerekir.
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
 			return
 		}
 
-		// Her şey tamamsa, asıl handler'a (mux) devam et
 		next.ServeHTTP(w, r)
 	})
 }
 
 func main() {
-	// 1. Veritabanı Bağlantısı (DEĞİŞİKLİK YOK - Şifrenizin doğru olduğundan emin olun)
-	connStr := "postgres://kuzey:sifreniz@localhost:5432/guestbook_db?sslmode=disable"
+	connStr := "postgres://kuzey:yourpassword@localhost:5432/guestbook_db?sslmode=disable"
 	db, err := openDB(connStr)
 	if err != nil {
-		log.Fatalf("Veritabanına bağlanılamadı: %v", err)
+		log.Fatalf("could not connect to database: %v", err)
 	}
-	fmt.Println("Veritabanına başarıyla bağlanıldı.")
+	fmt.Println("Connected to database successfully.")
 
-	// 2. Bağımlılıkları Hazırla
-	// YENİ: 'templates' satırını sildik
 	store := NewMessageStore(db)
 
-	// 3. Application struct'ını oluştur
-	// YENİ: 'templates' alanını sildik
 	app := &Application{
 		store: store,
 	}
 
-	// 4. Yönlendiriciyi (Router) ayarla
 	mux := http.NewServeMux()
-	// YENİ: Yönlendirme (route) artık '/' değil, '/api/messages'
 	mux.HandleFunc("/api/messages", app.handleMessages)
 
-	// 5. Web Sunucusunu yapılandır
 	srv := &http.Server{
-		Addr: ":8080",
-		// YENİ: Mux'ı CORS middleware'i ile sarmaladık
+		Addr:    ":8080",
 		Handler: enableCORS(mux),
 	}
 
-	// 6. Sunucuyu Başlat
-	fmt.Println("API Sunucusu http://localhost:8080 adresinde başlatılıyor...")
+	fmt.Println("Starting API server on http://localhost:8080...")
 	if err := srv.ListenAndServe(); err != nil {
-		log.Fatal("Sunucu başlatılamadı:", err)
+		log.Fatal("Server failed to start:", err)
 	}
 }

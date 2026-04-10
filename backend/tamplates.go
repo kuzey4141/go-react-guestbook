@@ -5,13 +5,11 @@ import (
 	"log"
 )
 
-// NewTemplateCache, belirtilen HTML dosyasını ayrıştırır ve bir şablon nesnesi döndürür.
+// NewTemplateCache parses the given HTML file and returns a template.
 func NewTemplateCache(file string) *template.Template {
-	// template.Must, şablon okunurken hata olursa programı durdurur (Fatal).
 	tmpl, err := template.ParseFiles(file)
 	if err != nil {
-		// log.Fatal, programı anında durdurur. Şablon olmadan çalışamayız.
-		log.Fatalf("Şablon '%s' yüklenemedi: %v", file, err)
+		log.Fatalf("template %q could not be loaded: %v", file, err)
 	}
 	return tmpl
 }
